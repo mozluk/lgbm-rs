@@ -5,6 +5,12 @@ on:
   pull_request:
   schedule: [cron: "20 5 * * *"]
 
+# Least privilege: build, test, and lint only. The workflow needs no write access, so
+# granting it implicitly via the repository default would only widen the blast radius of
+# a compromised dependency build script.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
