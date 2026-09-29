@@ -279,7 +279,9 @@ impl Dataset {
 impl Drop for Dataset {
     fn drop(&mut self) {
         unsafe {
-            to_result(LGBM_DatasetFree(self.0)).unwrap();
+            // See the note on `Booster::drop`: discarding the error here is deliberate,
+            // so a failed free cannot panic during unwinding and abort the process.
+            let _ = to_result(LGBM_DatasetFree(self.0));
         }
     }
 }

@@ -485,7 +485,14 @@ impl Booster {
 impl Drop for Booster {
     fn drop(&mut self) {
         unsafe {
-            to_result(LGBM_BoosterFree(self.handle)).unwrap();
+            // The error is deliberately discarded rather than unwrapped. `Drop` has no
+            // way to report failure, and panicking inside `drop` while another panic is
+            // already unwinding aborts the process instead of unwinding normally -- so a
+            // failed `LGBM_BoosterFree` would escalate a recoverable error into a hard
+            // abort. Leaking the handle is the strictly better failure mode here: it ends
+            // with the process rather than mid-unwind, and the memory is still reclaimed
+            // by the OS.
+            let _ = to_result(LGBM_BoosterFree(self.handle));
         }
     }
 }
